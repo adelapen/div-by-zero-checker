@@ -79,9 +79,8 @@ public class DivByZeroTransfer extends CFTransfer {
 
     if (operator == Comparison.EQ) {
       if (AnnotationUtils.areSame(rhs, reflect(Zero.class))) {
-        return glb(lhs, reflect(NonZero.class));
+        return glb(lhs, reflect(Zero.class));
       }
-      // return glb(lhs, rhs);
     } else if (operator == Comparison.NE) {
       if (AnnotationUtils.areSame(rhs, reflect(Zero.class))) {
         return glb(lhs, reflect(NonZero.class));

@@ -76,7 +76,34 @@ public class DivByZeroTransfer extends CFTransfer {
    */
   private AnnotationMirror refineLhsOfComparison(
       Comparison operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
+
+    if (operator == Comparison.EQ) {
+      if (AnnotationUtils.areSame(rhs, reflect(Zero.class))) {
+        return glb(lhs, reflect(NonZero.class));
+      }
+      // return glb(lhs, rhs);
+    } else if (operator == Comparison.NE) {
+      if (AnnotationUtils.areSame(rhs, reflect(Zero.class))) {
+        return glb(lhs, reflect(NonZero.class));
+      }
+    } else if (operator == Comparison.LT) {
+      if (AnnotationUtils.areSame(rhs, reflect(Zero.class))) {
+        return glb(lhs, reflect(NonZero.class));
+      }
+    } else if (operator == Comparison.LE) {
+      if (AnnotationUtils.areSame(rhs, reflect(Zero.class))) {
+        return glb(lhs, reflect(PossiblyZero.class));
+      }
+    } else if (operator == Comparison.GT) {
+      if (AnnotationUtils.areSame(rhs, reflect(Zero.class))) {
+        return glb(lhs, reflect(NonZero.class));
+      }
+    } else if (operator == Comparison.GE) {
+      if (AnnotationUtils.areSame(rhs, reflect(Zero.class))) {
+        return glb(lhs, reflect(PossiblyZero.class));
+      }
+    }
+
     return lhs;
   }
 
@@ -97,12 +124,99 @@ public class DivByZeroTransfer extends CFTransfer {
    */
   private AnnotationMirror arithmeticTransfer(
       BinaryOperator operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
+    
+      switch (operator) {
+        case PLUS:
+        case MINUS:
+          if (isZero(lhs)) {
+            if (isZero(rhs)) {
+              return reflect(Zero.class);
+            } else if (isNonZero(rhs)) {
+              return reflect(NonZero.class);
+            } else if (isPossiblyZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            }
+
+          } else if (isNonZero(lhs)) {
+            if (isZero(rhs)) {
+              return reflect(NonZero.class);
+            } else if (isNonZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            } else if (isPossiblyZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            }
+
+          } else if (isPossiblyZero(lhs)) {
+            if (isZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            } else if (isNonZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            } else if (isPossiblyZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            }
+          }
+          break;
+
+        case TIMES:
+          if (isZero(lhs) || isZero(rhs)) {
+            return reflect(Zero.class);
+          } else if (isPossiblyZero(lhs) || isPossiblyZero(rhs)) {
+            return reflect(PossiblyZero.class);
+          } else {
+            return reflect(NonZero.class);
+          }
+          // break;
+
+        case DIVIDE:
+        case MOD:
+          if (isZero(lhs)) {
+            if (isZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            } else if (isNonZero(rhs)) {
+              return reflect(Zero.class);
+            } else if (isPossiblyZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            }
+
+          } else if (isNonZero(lhs)) {
+            if (isZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            } else if (isNonZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            } else if (isPossiblyZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            }
+
+          } else if (isPossiblyZero(lhs)) {
+            if (isZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            } else if (isNonZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            } else if (isPossiblyZero(rhs)) {
+              return reflect(PossiblyZero.class);
+            }
+
+          }
+          break;
+      }
+
     return top();
   }
 
   // ========================================================================
   // Useful helpers
+
+  private boolean isZero(AnnotationMirror lhs) {
+    return AnnotationUtils.areSame(lhs, reflect(Zero.class));
+  }
+
+  private boolean isNonZero(AnnotationMirror lhs) {
+    return AnnotationUtils.areSame(lhs, reflect(NonZero.class));
+  }
+
+  private boolean isPossiblyZero(AnnotationMirror lhs) {
+    return AnnotationUtils.areSame(lhs, reflect(PossiblyZero.class));
+  }
 
   /** Get the top of the lattice */
   private AnnotationMirror top() {
